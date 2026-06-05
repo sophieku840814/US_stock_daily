@@ -1,143 +1,51 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>美股盤前分析 — 2026-06-04</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-:root {
-  --bg-primary:#ffffff; --bg-secondary:#f5f4f0; --bg-card:#ffffff;
-  --text-primary:#1a1a19; --text-secondary:#6b6a65; --text-muted:#9b9991;
-  --border:rgba(26,26,25,0.11); --green:#1D9E75; --red:#D85A30;
-  --blue:#378ADD; --amber:#E8A020;
-  --shadow:0 1px 3px rgba(0,0,0,0.08); --radius:14px;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary:#1a1a1a; --bg-secondary:#222222; --bg-card:#2c2c2c;
-    --text-primary:#f0ede6; --text-secondary:#b0ada6; --text-muted:#888580;
-    --border:rgba(240,237,230,0.12); --shadow:0 1px 3px rgba(0,0,0,0.3);
-  }
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg-primary);color:var(--text-primary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.5}
-.header{background:linear-gradient(135deg,#0f1b2d 0%,#1a3055 50%,#0d2540 100%);color:#fff;padding:2.5rem 2rem 2rem;text-align:center}
-.header-date{font-size:.85rem;color:#8bb8e8;letter-spacing:.08em;margin-bottom:.5rem}
-.header h1{font-size:2rem;font-weight:700;margin-bottom:.75rem}
-.sentiment-badges{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
-.badge{padding:.3rem .85rem;border-radius:99px;font-size:.78rem;font-weight:600}
-.badge-bearish{background:rgba(216,90,48,.2);color:#ff8c6e;border:1px solid rgba(216,90,48,.4)}
-.badge-mixed{background:rgba(232,160,32,.2);color:#ffc85a;border:1px solid rgba(232,160,32,.4)}
-.badge-ai{background:rgba(55,138,221,.2);color:#7ec4f9;border:1px solid rgba(55,138,221,.4)}
-.badge-sector{background:rgba(29,158,117,.2);color:#5de8b4;border:1px solid rgba(29,158,117,.4)}
-.container{max-width:1280px;margin:0 auto;padding:1.5rem}
-.section-title{font-size:.7rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem;padding-top:.5rem}
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s}
-.card:hover{box-shadow:0 4px 16px rgba(0,0,0,.12);transform:translateY(-1px)}
-.futures-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
-@media(max-width:900px){.futures-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:480px){.futures-grid{grid-template-columns:1fr}}
-.futures-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s}
-.futures-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(-2px)}
-.futures-label{font-size:.72rem;color:var(--text-muted);font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.3rem}
-.futures-value{font-size:1.6rem;font-weight:700}
-.futures-change{font-size:.9rem;font-weight:600;margin-top:.25rem}
-.up{color:var(--green)}.dn{color:var(--red)}
-.macro-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
-@media(max-width:900px){.macro-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:480px){.macro-grid{grid-template-columns:1fr}}
-.macro-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem}
-.macro-label{font-size:.7rem;color:var(--text-muted);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
-.macro-value{font-size:1.3rem;font-weight:700;margin-top:.2rem}
-.macro-change{font-size:.78rem;color:var(--text-secondary);margin-top:.1rem}
-.events-list{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem}
-.event-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:1rem}
-.event-time{font-size:.75rem;color:var(--text-muted);min-width:65px;padding-top:.15rem;font-weight:600}
-.event-content{flex:1}
-.event-title{font-size:.9rem;font-weight:600}
-.event-desc{font-size:.82rem;color:var(--text-secondary);margin-top:.2rem;line-height:1.5}
-.event-badges{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.4rem}
-.stock-badge{background:var(--bg-secondary);color:var(--text-secondary);border:1px solid var(--border);padding:.15rem .5rem;border-radius:6px;font-size:.72rem;font-weight:600}
-.impact-high{border-left:3px solid var(--red)}
-.impact-med{border-left:3px solid var(--amber)}
-.impact-low{border-left:3px solid var(--green)}
-.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
-@media(max-width:800px){.charts-grid{grid-template-columns:1fr}}
-.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem}
-.chart-title{font-size:.85rem;font-weight:700;margin-bottom:1rem}
-.stocks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:1.5rem}
-@media(max-width:1024px){.stocks-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.stocks-grid{grid-template-columns:1fr}}
-.stock-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow);transition:box-shadow .2s,transform .2s}
-.stock-card:hover{box-shadow:0 6px 20px rgba(0,0,0,.12);transform:translateY(-2px)}
-.stock-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}
-.stock-ticker{font-size:1.1rem;font-weight:800}
-.stock-name{font-size:.73rem;color:var(--text-muted);margin-top:.1rem}
-.stock-price-block{text-align:right}
-.stock-prev{font-size:.72rem;color:var(--text-muted)}
-.stock-pre{font-size:1.05rem;font-weight:700}
-.stock-change{font-size:.82rem;font-weight:600}
-.stock-reason{font-size:.8rem;color:var(--text-secondary);margin-bottom:.75rem;line-height:1.45}
-.tech-levels{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem}
-.level-s{background:rgba(29,158,117,.1);color:var(--green);border:1px solid rgba(29,158,117,.25);padding:.2rem .55rem;border-radius:6px;font-size:.7rem;font-weight:600}
-.level-r{background:rgba(216,90,48,.1);color:var(--red);border:1px solid rgba(216,90,48,.25);padding:.2rem .55rem;border-radius:6px;font-size:.7rem;font-weight:600}
-.signal-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
-.signal{font-size:.78rem;font-weight:600}
-.analyst-row{font-size:.75rem;color:var(--text-secondary)}
-.news-item{font-size:.75rem;color:var(--text-muted);border-top:1px solid var(--border);padding-top:.5rem;margin-top:.5rem;line-height:1.4}
-.focus-group{margin-bottom:1.25rem}
-.focus-group-title{font-size:.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.6rem}
-.focus-items{display:flex;flex-direction:column;gap:.5rem}
-.focus-item{background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;font-size:.82rem;display:flex;align-items:flex-start;gap:.75rem}
-.focus-icon{font-size:1rem;min-width:1.2rem}
-.analyst-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;margin-bottom:1.5rem}
-@media(max-width:900px){.analyst-grid{grid-template-columns:1fr}}
-.analyst-card{background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem}
-.analyst-card-title{font-size:.88rem;font-weight:700;margin-bottom:.6rem}
-.analyst-card-body{font-size:.8rem;color:var(--text-secondary);line-height:1.55}
-.outlook-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.5rem}
-@media(max-width:600px){.outlook-grid{grid-template-columns:1fr}}
-footer{background:var(--bg-secondary);border-top:1px solid var(--border);padding:1.5rem 2rem;text-align:center;font-size:.72rem;color:var(--text-muted);line-height:1.7}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>美股盤前分析 2026-06-05 | Sophia 投資研究系統</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f4f0;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a19;
+            --text-secondary: #6b6a65;
+            --text-muted: #9b9991;
+            --border: rgba(26,26,25,0.11);
+            --green: #1D9E75;
+            --red: #D85A30;
+            --blue: #378ADD;
+            --amber: #E8A020;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08);
+            --radius: 14px;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-secondary: #222222;
+                --bg-card: #2c2c2c;
+                --text-primary: #f0ede6;
+                --text-secondary: #b0ada6;
+                --text-muted: #7a7870;
+                --border: rgba(240,237,230,0.12);
+                --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', system-ui, sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; min-height: 100vh; }
+        .redirect-note { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-align: center; margin: 40px auto; max-width: 600px; font-size: 14px; color: var(--text-secondary); }
+        .redirect-note strong { color: var(--text-primary); font-size: 16px; display: block; margin-bottom: 8px; }
+        .redirect-note a { color: var(--blue); text-decoration: none; font-weight: 700; }
+    </style>
+    <meta http-equiv="refresh" content="0; url=premarket_20260605.html">
 </head>
 <body>
-
-<div class="header">
-  <div class="header-date">2026年06月04日（週四）｜盤前市場分析｜美東時間 05:30 EST</div>
-  <h1>🇺🇸 美股盤前分析簡報</h1>
-  <div class="sentiment-badges">
-    <span class="badge badge-bearish">整體偏空 ▼ Nasdaq -1.23%</span>
-    <span class="badge badge-mixed">科技股強烈分化</span>
-    <span class="badge badge-ai">AI互聯主題爆發</span>
-    <span class="badge badge-sector">半導體大分歧</span>
-  </div>
-</div>
-
-<div class="container">
-<div class="section-title">大盤期貨指標（盤前 05:16 EST）</div>
-<div class="futures-grid">
-  <div class="futures-card"><div class="futures-label">S&amp;P 500 期貨 (ES)</div><div class="futures-value">7,563</div><div class="futures-change dn">▼ −37pts −0.49%</div></div>
-  <div class="futures-card"><div class="futures-label">Nasdaq 100 期貨 (NQ)</div><div class="futures-value">27,024</div><div class="futures-change dn">▼ −376pts −1.23%</div></div>
-  <div class="futures-card"><div class="futures-label">道瓊期貨 (YM)</div><div class="futures-value">48,820</div><div class="futures-change up">▲ +120pts +0.24%</div></div>
-  <div class="futures-card"><div class="futures-label">Russell 2000 (RTY)</div><div class="futures-value">2,898.80</div><div class="futures-change up">▲ +3.5pts +0.12%</div></div>
-</div>
-<p style="font-size:.75rem;color:var(--text-muted);text-align:center;margin-bottom:1rem">最新資料請查看 <a href="premarket_20260604.html">完整版盤前簡報 2026-06-04</a></p>
-</div>
-
-<footer>
-  <strong>免責聲明</strong> — 本報告僅供資訊參考用途，不構成投資建議。投資有風險，請諮詢持牌財務顧問。<br>
-  本報告由自動化系統生成，報告時間：2026年06月04日（UTC）｜版權所有 © Sophia Auto Report Bot
-</footer>
-
-<script>
-(function(){
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const tickColor = isDark ? '#b0ada6' : '#6b6a65';
-  const gridColor = isDark ? 'rgba(240,237,230,0.08)' : 'rgba(26,26,25,0.08)';
-  const tickers = ['MRVL','CRDO','ALAB','TSM','NVDA','ETN','GOOGL','AAPL','AMZN','VRT','MSFT','MU','AVGO'];
-  const changes = [5.36, 19.9, 4.17, 1.85, 1.57, 0.05, -0.63, -0.56, -1.48, -2.99, -3.02, -3.02, -15.05];
-})();
-</script>
+    <div class="redirect-note">
+        <strong>Sophia 美股盤前簡報 — 最新版</strong>
+        正在跳轉至最新報告 (2026-06-05)...<br><br>
+        <a href="premarket_20260605.html">點此開啟 → 2026-06-05 盤前分析簡報</a>
+    </div>
 </body>
 </html>
