@@ -28,6 +28,14 @@ REPORT_DIR = ROOT / "private" / "reports"
 SNAP_DIR = ROOT / "private" / "portfolio" / "snapshots"
 
 
+POLICY = ROOT / "private" / "portfolio" / "policy.toml"
+
+
+def load_policy() -> dict:
+    """投資政策書（private/portfolio/policy.toml）；沒有就回傳空設定，改用 portfolio_config 的門檻"""
+    return tomllib.loads(POLICY.read_text(encoding="utf-8")) if POLICY.exists() else {}
+
+
 # ---------------------------------------------------------------- 資料抓取
 def fetch_quote(ticker: str) -> dict:
     t = yf.Ticker(ticker)
@@ -207,12 +215,34 @@ def build(holdings: dict, cfg: dict) -> dict:
 
     # --- 警示
     alerts = []
+    pol = load_policy()
+    conc = pol.get("concentration", {})
+    single_max = conc.get("single_name_max", th["single_name_max"])
+    exceptions = conc.get("exceptions", {})
     for e in exposures:
-        if not e["residual"] and e["pct"] > th["single_name_max"]:
-            alerts.append(("serious", f"{e['name']} 實際曝險 {e['pct']:.1%}，超過單一公司上限 {th['single_name_max']:.0%}"))
+        if e["residual"]:
+            continue
+        limit = exceptions.get(e["key"], single_max)
+        if e["pct"] > limit:
+            alerts.append(("serious", f"{e['name']} 實際曝險 {e['pct']:.1%}，超過上限 {limit:.0%}，新資金不再投入"))
+        elif e["key"] in exceptions and e["pct"] > limit * 0.9:
+            alerts.append(("warning", f"{e['name']} 實際曝險 {e['pct']:.1%}，接近例外上限 {limit:.0%}，不再加碼"))
+    watch = conc.get("theme_watch")
+    t_max, t_target = conc.get("theme_max", th["theme_max"]), conc.get("theme_target")
     for t_name, p in themes_sorted:
-        if p > th["theme_max"] and "廣泛市場" not in t_name:
-            alerts.append(("warning", f"「{t_name}」主題佔 {p:.1%}，超過主題上限 {th['theme_max']:.0%}"))
+        if "廣泛市場" in t_name or (watch is not None and t_name not in watch):
+            continue
+        if p > t_max:
+            alerts.append(("serious", f"「{t_name}」主題佔 {p:.1%}，超過硬上限 {t_max:.0%}：衛星不得再開這個主題的部位"))
+        elif t_target and p > t_target:
+            alerts.append(("warning", f"「{t_name}」主題佔 {p:.1%}，高於目標 {t_target:.0%}（上限 {t_max:.0%}）：新資金優先投入其他主題"))
+    alloc = pol.get("allocation", {})
+    sat = by_sleeve.get("satellite", 0)
+    if alloc.get("satellite_max") and sat > alloc["satellite_max"]:
+        alerts.append(("serious", f"衛星部位 {sat:.1%}，超過上限 {alloc['satellite_max']:.0%}：暫停新的波段"))
+    elif alloc.get("satellite_target") and sat < alloc["satellite_target"] * 0.7:
+        alerts.append(("info", f"衛星部位 {sat:.1%}，低於目標 {alloc['satellite_target']:.0%}，還有約 "
+                               f"NT${(alloc['satellite_target'] - sat) * total_usd / fx_to_usd('TWD', fx) / 1e4:,.0f} 萬的波段額度"))
     tk_usd = defaultdict(float)
     for r in rows:
         tk_usd[r["ticker"]] += r["value_usd"]
