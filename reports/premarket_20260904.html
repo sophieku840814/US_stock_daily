@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美股盤前分析簡報 — 2026年9月4日</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f4f0;
+  --bg-card: #ffffff;
+  --text-primary: #1a1a19;
+  --text-secondary: #6b6a65;
+  --text-muted: #9b9991;
+  --border: rgba(26,26,25,0.11);
+  --green: #1D9E75;
+  --red: #D85A30;
+  --blue: #378ADD;
+  --amber: #E8A020;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #222222;
+    --bg-card: #2c2c2c;
+    --text-primary: #f0ede6;
+    --text-secondary: #b0ada6;
+    --text-muted: #7a7870;
+    --border: rgba(240,237,230,0.12);
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+}
+:root[data-theme="dark"] {
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #222222;
+  --bg-card: #2c2c2c;
+  --text-primary: #f0ede6;
+  --text-secondary: #b0ada6;
+  --text-muted: #7a7870;
+  --border: rgba(240,237,230,0.12);
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Noto Sans TC', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* === HEADER === */
+.header {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b3a5c 40%, #1e4d7b 70%, #16354e 100%);
+  padding: 40px 24px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 20% 50%, rgba(55,138,221,0.18) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 50%, rgba(29,158,117,0.12) 0%, transparent 60%);
+}
+.header-content { position: relative; z-index: 1; }
+.header-date {
+  font-size: 12px;
+  color: rgba(255,255,255,0.6);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.header-title {
+  font-size: clamp(22px, 4vw, 32px);
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+.header-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 20px;
+}
+.header-badges {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.badge-bullish { background: rgba(29,158,117,0.25); color: #4dd9a6; border: 1px solid rgba(29,158,117,0.4); }
+.badge-neutral { background: rgba(232,160,32,0.2); color: #f5c060; border: 1px solid rgba(232,160,32,0.35); }
+.badge-warning { background: rgba(216,90,48,0.2); color: #f08060; border: 1px solid rgba(216,90,48,0.35); }
+.badge-info { background: rgba(55,138,221,0.2); color: #80b8f0; border: 1px solid rgba(55,138,221,0.35); }
+
+/* === MAIN LAYOUT === */
+.main { max-width: 1280px; margin: 0 auto; padding: 24px 16px; }
+.section { margin-bottom: 32px; }
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* === FUTURES GRID === */
+.futures-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+@media (max-width: 768px) { .futures-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .futures-grid { grid-template-columns: 1fr 1fr; } }
+
+.metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: default;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+.metric-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.metric-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.metric-change {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.metric-pts {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.positive { color: #1D9E75; }
+.negative { color: #D85A30; }
+
+/* === MACRO ROW === */
+.macro-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+@media (max-width: 768px) { .macro-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.macro-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.15s;
+}
+.macro-card:hover { transform: translateY(-1px); }
+.macro-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.macro-icon.yield { background: rgba(55,138,221,0.12); }
+.macro-icon.vix { background: rgba(216,90,48,0.1); }
+.macro-icon.oil { background: rgba(232,160,32,0.12); }
+.macro-icon.usd { background: rgba(29,158,117,0.1); }
+.macro-info { flex: 1; min-width: 0; }
+.macro-name { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.3px; }
+.macro-val { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.macro-chg { font-size: 12px; font-weight: 600; }
+
+/* === CATALYST LIST === */
+.catalyst-list { display: flex; flex-direction: column; gap: 8px; }
+.catalyst-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
+}
+.catalyst-item:hover { transform: translateX(3px); }
+.catalyst-impact {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex-shrink: 0; margin-top: 6px;
+}
+.impact-critical { background: #D85A30; box-shadow: 0 0 6px rgba(216,90,48,0.5); }
+.impact-high { background: #E8A020; box-shadow: 0 0 5px rgba(232,160,32,0.4); }
+.impact-medium { background: #378ADD; }
+.impact-low { background: #1D9E75; }
+.catalyst-body { flex: 1; }
+.catalyst-time { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+.catalyst-text { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+.catalyst-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+.stock-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(55,138,221,0.12);
+  color: var(--blue);
+  border: 1px solid rgba(55,138,221,0.2);
+  letter-spacing: 0.3px;
+}
+
+/* === CHART AREA === */
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.chart-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.chart-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.chart-wrapper { position: relative; width: 100%; }
+
+/* === STOCK CARDS GRID === */
+.stocks-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1024px) { .stocks-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .stocks-grid { grid-template-columns: 1fr; } }
+
+.stock-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.stock-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
+.stock-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 14px 14px 0 0;
+}
+.stock-card.positive-card::before { background: linear-gradient(90deg, #1D9E75, #2cc48a); }
+.stock-card.negative-card::before { background: linear-gradient(90deg, #D85A30, #e8724e); }
+.stock-card.neutral-card::before { background: linear-gradient(90deg, #378ADD, #5a9de8); }
+
+.stock-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.stock-ticker { font-size: 20px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; }
+.stock-name { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+.stock-price-block { text-align: right; }
+.stock-premarket-price { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.stock-price-change { font-size: 13px; font-weight: 600; }
+.stock-prev-close { font-size: 10px; color: var(--text-muted); }
+
+.stock-divider { height: 1px; background: var(--border); margin: 10px 0; }
+
+.stock-reason-label { font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+.stock-reason { font-size: 12px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 10px; }
+
+.tech-levels { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.tech-level {
+  padding: 5px 8px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tech-level.support { background: rgba(29,158,117,0.12); color: #1D9E75; border: 1px solid rgba(29,158,117,0.2); }
+.tech-level.resist { background: rgba(216,90,48,0.1); color: #D85A30; border: 1px solid rgba(216,90,48,0.2); }
+
+.stock-signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+.signal-buy { background: rgba(29,158,117,0.15); color: #1D9E75; border: 1px solid rgba(29,158,117,0.25); }
+.signal-hold { background: rgba(55,138,221,0.12); color: #378ADD; border: 1px solid rgba(55,138,221,0.22); }
+.signal-sell { background: rgba(216,90,48,0.12); color: #D85A30; border: 1px solid rgba(216,90,48,0.2); }
+
+.analyst-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.analyst-rating { font-size: 11px; font-weight: 700; color: var(--blue); }
+.analyst-pt { font-size: 11px; color: var(--text-muted); }
+
+.stock-news { font-size: 11px; color: var(--text-secondary); background: var(--bg-secondary); border-radius: 7px; padding: 7px 9px; line-height: 1.5; }
+
+/* === ATTENTION & ANALYST SECTIONS === */
+.attention-group { margin-bottom: 16px; }
+.attention-level {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.attention-items { display: flex; flex-direction: column; gap: 6px; }
+.attention-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.attention-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.at-critical { background: #D85A30; }
+.at-high { background: #E8A020; }
+.at-medium { background: #378ADD; }
+.at-low { background: #1D9E75; }
+
+.analyst-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+@media (max-width: 900px) { .analyst-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .analyst-grid { grid-template-columns: 1fr; } }
+
+.analyst-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s;
+}
+.analyst-card:hover { transform: translateY(-2px); }
+.analyst-card-icon { font-size: 24px; margin-bottom: 10px; }
+.analyst-card-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+.analyst-card-body { font-size: 12px; color: var(--text-secondary); line-height: 1.65; }
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+@media (max-width: 640px) { .events-grid { grid-template-columns: 1fr; } }
+
+.event-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+.event-card-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.event-card-body { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+
+/* === FOOTER === */
+.footer {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  padding: 24px;
+  text-align: center;
+  margin-top: 40px;
+}
+.footer-text { font-size: 11px; color: var(--text-muted); line-height: 1.7; max-width: 700px; margin: 0 auto; }
+.footer-brand { font-weight: 700; color: var(--text-secondary); }
+
+/* === UTILS === */
+.flex-center { display: flex; align-items: center; gap: 6px; }
+.chip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+}
+.chip-green { background: rgba(29,158,117,0.12); color: #1D9E75; }
+.chip-red { background: rgba(216,90,48,0.1); color: #D85A30; }
+.chip-blue { background: rgba(55,138,221,0.1); color: #378ADD; }
+.chip-amber { background: rgba(232,160,32,0.12); color: #E8A020; }
+
+hr.section-hr { border: none; border-top: 1px solid var(--border); margin: 8px 0 12px; }
+</style>
+</head>
+<body>
+
+<!-- A. HEADER -->
+<div class="header">
+  <div class="header-content">
+    <div class="header-date">2026年9月4日（星期五）&nbsp;｜&nbsp;紐約時間 07:30 盤前</div>
+    <div class="header-title">美股盤前深度分析簡報</div>
+    <div class="header-subtitle">Sophia 自選股監控報告 · 半導體 / AI 基礎設施 / 大型科技</div>
+    <div class="header-badges">
+      <span class="badge badge-bullish">&#9650; 情緒：謹慎偏多</span>
+      <span class="badge badge-info">&#128203; 重大事件：8月非農就業數據</span>
+      <span class="badge badge-neutral">&#9889; NVDA 收購 Hugging Face</span>
+      <span class="badge badge-warning">&#128241; AAPL 9/9 iPhone 18 發表</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- B. FUTURES GRID -->
+  <div class="section">
+    <div class="section-title">大盤期貨指標</div>
+    <div class="futures-grid">
+      <div class="metric-card">
+        <div class="metric-label">S&amp;P 500 期貨</div>
+        <div class="metric-value">5,892</div>
+        <div class="metric-change positive">&#9650; +0.10%</div>
+        <div class="metric-pts positive">+5.9 點 · 勞動節後首交易日謹慎開高</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Nasdaq 100 期貨</div>
+        <div class="metric-value">29,563</div>
+        <div class="metric-change positive">&#9650; +0.50%</div>
+        <div class="metric-pts positive">+147.8 點 · AI 科技板塊領漲</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">道瓊期貨</div>
+        <div class="metric-value">53,762</div>
+        <div class="metric-change positive">&#9650; +0.03%</div>
+        <div class="metric-pts positive">+17.0 點 · 工業股走勢平穩</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Russell 2000 期貨</div>
+        <div class="metric-value">2,970.6</div>
+        <div class="metric-change positive">&#9650; +0.03%</div>
+        <div class="metric-pts positive">+0.9 點 · 小型股等待非農數據指引</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C. MACRO INDICATORS -->
+  <div class="section">
+    <div class="section-title">宏觀指標</div>
+    <div class="macro-grid">
+      <div class="macro-card">
+        <div class="macro-icon yield">&#128202;</div>
+        <div class="macro-info">
+          <div class="macro-name">10年期美債殖利率</div>
+          <div class="macro-val">4.74%</div>
+          <div class="macro-chg positive">&#9650; +0.8 bps · 非農前小幅回升</div>
+        </div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-icon vix">&#128269;</div>
+        <div class="macro-info">
+          <div class="macro-name">VIX 恐慌指數</div>
+          <div class="macro-val">14.32</div>
+          <div class="macro-chg positive">&#9660; -5.79% · 市場情緒明顯降溫</div>
+        </div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-icon oil">&#128026;</div>
+        <div class="macro-info">
+          <div class="macro-name">Brent 原油 (美元/桶)</div>
+          <div class="macro-val">$95.23</div>
+          <div class="macro-chg negative">&#9660; -0.31% · 需求擔憂略壓油價</div>
+        </div>
+      </div>
+      <div class="macro-card">
+        <div class="macro-icon usd">&#128178;</div>
+        <div class="macro-info">
+          <div class="macro-name">美元指數 (DXY)</div>
+          <div class="macro-val">98.97</div>
+          <div class="macro-chg positive">&#9660; -0.63% · 聯準會耐心姿態弱化美元</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- D. CATALYST LIST -->
+  <div class="section">
+    <div class="section-title">今日重要催化劑（依影響等級排序）</div>
+    <div class="catalyst-list">
+
+      <div class="catalyst-item">
+        <div class="catalyst-impact impact-critical"></div>
+        <div class="catalyst-body">
+          <div class="catalyst-time">08:30 ET — 極高影響 &#128308;</div>
+          <div class="catalyst-text">【8月非農就業報告】市場預估新增 58,000–65,000 職位（較 7 月 -23,000 大幅反彈），失業率預估維持 4.1%。若數據遜於預期，將強化 9 月 16 日 FOMC 降息 25 bps 預期，推升科技股；若大幅超預期，恐帶動殖利率走高、壓制高估值成長股。</div>
+          <div class="catalyst-tags">
+            <span class="stock-tag">NVDA</span><span class="stock-tag">MRVL</span><span class="stock-tag">AVGO</span><span class="stock-tag">MU</span><span class="stock-tag">AAPL</span><span class="stock-tag">MSFT</span><span class="stock-tag">AMZN</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="catalyst-item">
+        <div class="catalyst-impact impact-high"></div>
+        <div class="catalyst-body">
+          <div class="catalyst-time">昨日盤後 — 高影響 &#128993;</div>
+          <div class="catalyst-text">【NVIDIA 擬以 129.3 億美元現金收購 Hugging Face】收購 AI 模型社群平台龍頭，戰略意義重大：NVDA 從單純晶片廠商向 AI 軟體生態系統垂直整合，強化護城河，Hugging Face 平均月活用戶達 5,000 萬+。收購案預計 Q1 2027 完成，待監管審查。</div>
+          <div class="catalyst-tags"><span class="stock-tag">NVDA</span><span class="stock-tag">MSFT</span><span class="stock-tag">GOOGL</span></div>
+        </div>
+      </div>
+
+      <div class="catalyst-item">
+        <div class="catalyst-impact impact-high"></div>
+        <div class="catalyst-body">
+          <div class="catalyst-time">本週 — 高影響 &#128993;</div>
+          <div class="catalyst-text">【Broadcom Q3 FY2026 財報超預期】營收 296 億美元，AI 半導體業務年增 221%；Q4 指引略低於預期，摩根大通、Macquarie 維持 Outperform，BMO Capital 上調目標價至 575 美元。</div>
+          <div class="catalyst-tags"><span class="stock-tag">AVGO</span><span class="stock-tag">MRVL</span><span class="stock-tag">CRDO</span><span class="stock-tag">ALAB</span></div>
+        </div>
+      </div>
+
+      <div class="catalyst-item">
+        <div class="catalyst-impact impact-high"></div>
+        <div class="catalyst-body">
+          <div class="catalyst-time">即將 — 高影響 &#128993;</div>
+          <div class="catalyst-text">【Apple 9月9日 iPhone 18 發表活動】新任 CEO John Ternus（9/1 正式接任）將主持首場發表會，市場聚焦可摺疊 iPhone（IDC 預測 2027 年出貨 1,700 萬台，市佔 40%）、Apple Intelligence 2.0 升級。記憶體成本大漲為毛利率潛在壓力。</div>
+          <div class="catalyst-tags"><span class="stock-tag">AAPL</span><span class="stock-tag">MU</span><span class="stock-tag">TSM</span></div>
+        </div>
+      </div>
+
+      <div class="catalyst-item">
+        <div class="catalyst-impact impact-medium"></div>
+        <div class="catalyst-body">
+          <div class="catalyst-time">昨日 — 中影響 &#128309;</div>
+          <div class="catalyst-text">【Amazon 發布自研伺服器冷卻系統】Amazon 宣布自行研發液冷散熱方案，降低對 Vertiv 等第三方供應商依賴，VRT 盤中應聲下跌 2% 至 125.55 美元。Evercore ISI 維持 Outperform 但下調目標價至 375 美元（前 425 美元）。</div>
+          <div class="catalyst-tags"><span class="stock-tag">VRT</span><span class="stock-tag">AMZN</span><span class="stock-tag">ETN</span></div>
+        </div>
+      </div>
+
+      <div class="catalyst-item">
+        <div class="catalyst-impact impact-medium"></div>
+        <div class="catalyst-body">
+          <div class="catalyst-time">持續 — 中影響 &#128309;</div>
+          <div class="catalyst-text">【中美晶片貿易摩擦升溫】中方指控美國違反關稅停戰協議，包括 AI 晶片出口管制新規、撤銷中國留學生簽證。美方已宣布對中國半導體徵稅推遲至 2027 年 6 月；半導體設備出口限制仍持續。</div>
+          <div class="catalyst-tags"><span class="stock-tag">NVDA</span><span class="stock-tag">AVGO</span><span class="stock-tag">TSM</span><span class="stock-tag">MU</span></div>
+        </div>
+      </div>
+
+      <div class="catalyst-item">
+        <div class="catalyst-impact impact-low"></div>
+        <div class="catalyst-body">
+          <div class="catalyst-time">本月 — 低影響 &#128994;</div>
+          <div class="catalyst-text">【FOMC 9月 15-16 日會議】市場目前預估 9 月降息 25 bps 機率超過 65%；今日非農數據為最後一個重量級就業指標，將直接影響聯準會決策。GOOGL 今日除息（股息 0.22 美元）。</div>
+          <div class="catalyst-tags"><span class="stock-tag">GOOGL</span><span class="stock-tag">AMZN</span><span class="stock-tag">MSFT</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- E. CHARTS -->
+  <div class="section">
+    <div class="section-title">盤前表現圖表</div>
+    <div style="display:flex;flex-direction:column;gap:20px;">
+
+      <div class="chart-card">
+        <div class="chart-title">自選股盤前漲跌幅（水平排列）</div>
+        <div class="chart-sub">所有 13 支自選股相對前日收盤之盤前漲跌幅（%）</div>
+        <div class="chart-wrapper">
+          <canvas id="chartHorizontal"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">自選股盤前漲跌幅（由高至低排序）</div>
+        <div class="chart-sub">垂直長條圖，正值綠色 / 負值橙紅</div>
+        <div class="chart-wrapper">
+          <canvas id="chartVertical"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- F. STOCK CARDS -->
+  <div class="section">
+    <div class="section-title">個股深度分析</div>
+    <div class="stocks-grid">
+
+      <!-- NVDA -->
+      <div class="stock-card negative-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">NVDA</div><div class="stock-name">NVIDIA Corporation</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$226.03</div>
+            <div class="stock-price-change negative">&#9660; -1.32 (-0.58%)</div>
+            <div class="stock-prev-close">前收 $227.35</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">NVDA 宣布以 <strong>129.3 億美元</strong>現金收購 AI 模型平台 Hugging Face，市場對收購溢價反應謹慎，短線獲利回吐。收購完成後 NVDA 將擁有全球最大開源模型社群，強化軟硬體垂直整合護城河。股息 $0.25（除息日 9/10）。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$221.50</span></div>
+          <div class="tech-level resist">R1 <span>$230.00</span></div>
+          <div class="tech-level support">S2 <span>$215.80</span></div>
+          <div class="tech-level resist">R2 <span>$238.40</span></div>
+        </div>
+        <div class="stock-signal signal-hold">&#9208;&#65039; 持有觀望</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Susquehanna · Buy</span>
+          <span class="analyst-pt">目標價 $280</span>
+        </div>
+        <div class="stock-news">&#128240; Seeking Alpha：Susquehanna 在財報前維持樂觀買入評級；收購案待監管審查，預計 Q1 2027 完成。</div>
+      </div>
+
+      <!-- MRVL -->
+      <div class="stock-card positive-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">MRVL</div><div class="stock-name">Marvell Technology</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$217.40</div>
+            <div class="stock-price-change positive">&#9650; +2.10 (+0.97%)</div>
+            <div class="stock-prev-close">前收 $215.30</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">BofA 分析師 Vivek Arya 報告指出 MRVL、AVGO、CRDO 將「重振 AI 貿易熱潮」，MRVL 資料中心收入 Q2 年增 <strong>27.2% 至 18.3 億美元</strong>。摩根士丹利維持 Overweight，惟相對偏好 AVGO。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$210.00</span></div>
+          <div class="tech-level resist">R1 <span>$222.50</span></div>
+          <div class="tech-level support">S2 <span>$203.80</span></div>
+          <div class="tech-level resist">R2 <span>$230.00</span></div>
+        </div>
+        <div class="stock-signal signal-buy">&#9989; 留意買點</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Morgan Stanley · Overweight</span>
+          <span class="analyst-pt">目標價 $245</span>
+        </div>
+        <div class="stock-news">&#128240; Seeking Alpha：BofA 指 MRVL 與 AVGO、CRDO 合力有望重燃 AI 資料中心互連需求，為本季最具催化劑的晶片股。</div>
+      </div>
+
+      <!-- CRDO -->
+      <div class="stock-card positive-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">CRDO</div><div class="stock-name">Credo Technology</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$165.52</div>
+            <div class="stock-price-change positive">&#9650; +0.15 (+0.09%)</div>
+            <div class="stock-prev-close">前收 $165.37</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">BofA 同期看好 CRDO 高速乙太網路 AEC 訊號調節器在超大規模 AI 叢集的需求。隱含波動率下降反映市場籌碼偏穩，當前估值仍高，需財測確認成長軌道。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$158.00</span></div>
+          <div class="tech-level resist">R1 <span>$172.50</span></div>
+          <div class="tech-level support">S2 <span>$149.80</span></div>
+          <div class="tech-level resist">R2 <span>$180.00</span></div>
+        </div>
+        <div class="stock-signal signal-hold">&#9208;&#65039; 持有觀望</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">BofA · Buy</span>
+          <span class="analyst-pt">目標價 $200</span>
+        </div>
+        <div class="stock-news">&#128240; Seeking Alpha：BofA 強調 CRDO AEC 訊號調節器已成為超大規模雲端 AI 訓練叢集不可或缺的互連元件。</div>
+      </div>
+
+      <!-- AVGO -->
+      <div class="stock-card positive-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">AVGO</div><div class="stock-name">Broadcom Inc.</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$428.75</div>
+            <div class="stock-price-change positive">&#9650; +5.20 (+1.23%)</div>
+            <div class="stock-prev-close">前收 $423.55</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">Q3 FY2026 財報超強勁：營收 <strong>296 億美元</strong>，AI 半導體業務年增 <strong>221%</strong>；Macquarie 升評至 Outperform，BMO Capital 上調目標價至 <strong>575 美元</strong>；惟 Q4 指引略低於市場共識，TD Cowen 下調至 475 美元維持 Buy。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$415.00</span></div>
+          <div class="tech-level resist">R1 <span>$440.00</span></div>
+          <div class="tech-level support">S2 <span>$400.00</span></div>
+          <div class="tech-level resist">R2 <span>$455.00</span></div>
+        </div>
+        <div class="stock-signal signal-buy">&#9989; 留意買點</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">BMO Capital · Outperform</span>
+          <span class="analyst-pt">目標價 $575</span>
+        </div>
+        <div class="stock-news">&#128240; Market Rebellion：AVGO 期權未平倉量大幅攀升，市場看好 AI ASIC 自訂晶片長期訂單能見度。</div>
+      </div>
+
+      <!-- TSM -->
+      <div class="stock-card neutral-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">TSM</div><div class="stock-name">Taiwan Semiconductor</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$415.63</div>
+            <div class="stock-price-change positive">&#9650; +0.03 (+0.01%)</div>
+            <div class="stock-prev-close">前收 $415.60</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">台積電盤前幾乎持平，AI 晶片強勁需求持續，NVIDIA Hopper/Blackwell 先進封裝需求已預訂至 2027 年，CoWoS 產能持續滿載。中美晶片管制不確定性為潛在風險，但台灣廠的中性地位相對緩衝。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$405.00</span></div>
+          <div class="tech-level resist">R1 <span>$425.00</span></div>
+          <div class="tech-level support">S2 <span>$392.00</span></div>
+          <div class="tech-level resist">R2 <span>$438.00</span></div>
+        </div>
+        <div class="stock-signal signal-hold">&#9208;&#65039; 持有觀望</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Morgan Stanley · Overweight</span>
+          <span class="analyst-pt">目標價 $460</span>
+        </div>
+        <div class="stock-news">&#128240; Morgan Stanley 指 TSM 為 AI 運算基礎設施的「終極受益者」，預計 CoWoS 先進封裝 2026 年底產能再提升 40%。</div>
+      </div>
+
+      <!-- ALAB -->
+      <div class="stock-card negative-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">ALAB</div><div class="stock-name">Astera Labs</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$79.15</div>
+            <div class="stock-price-change negative">&#9660; -0.52 (-0.65%)</div>
+            <div class="stock-prev-close">前收 $79.67</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">Q2 2026 營收 <strong>3.924 億美元</strong>，年增 104%，但自上季財報後已累計下跌 <strong>13.9%</strong>，市場擔憂客戶集中度過高（Amazon 為主要大客戶），且 Amazon 自研冷卻/互連方案的消息增添不確定性。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$75.50</span></div>
+          <div class="tech-level resist">R1 <span>$83.00</span></div>
+          <div class="tech-level support">S2 <span>$70.00</span></div>
+          <div class="tech-level resist">R2 <span>$90.00</span></div>
+        </div>
+        <div class="stock-signal signal-hold">&#9208;&#65039; 持有觀望</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Wells Fargo · Overweight</span>
+          <span class="analyst-pt">目標價 $105</span>
+        </div>
+        <div class="stock-news">&#128240; TradingKey (8/17)：ALAB 當日大漲 7.14%，PCIe 5.0/CXL 高速互連方案獲 Microsoft Azure 大規模採購確認。</div>
+      </div>
+
+      <!-- GOOGL -->
+      <div class="stock-card negative-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">GOOGL</div><div class="stock-name">Alphabet Inc.</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$207.63</div>
+            <div class="stock-price-change negative">&#9660; -0.25 (-0.12%)</div>
+            <div class="stock-prev-close">前收 $207.85（今日除息 $0.22）</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">今日為 GOOGL <strong>除息日（股息 0.22 美元/股）</strong>，股價小幅下調反映股息扣除。Google Cloud AI 業務持續高速成長，Gemini Ultra 商業化進展受市場肯定。AI 搜尋廣告貨幣化為下半年最大期待。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$202.00</span></div>
+          <div class="tech-level resist">R1 <span>$213.50</span></div>
+          <div class="tech-level support">S2 <span>$196.00</span></div>
+          <div class="tech-level resist">R2 <span>$220.00</span></div>
+        </div>
+        <div class="stock-signal signal-hold">&#9208;&#65039; 持有觀望</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Goldman Sachs · Buy</span>
+          <span class="analyst-pt">目標價 $240</span>
+        </div>
+        <div class="stock-news">&#128240; CNBC：Google 宣布 2026 年 AI 資本支出提升至 850 億美元，Cloud 業務 Q2 年增 32%，持續縮小與 Azure、AWS 差距。</div>
+      </div>
+
+      <!-- AAPL -->
+      <div class="stock-card positive-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">AAPL</div><div class="stock-name">Apple Inc.</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$327.25</div>
+            <div class="stock-price-change positive">&#9650; +1.24 (+0.38%)</div>
+            <div class="stock-prev-close">前收 $326.01</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">新任執行長 <strong>John Ternus</strong>（9/1 正式接任 Tim Cook）主持首場盛會定於 <strong>9 月 9 日</strong>，主角：iPhone 18 全系列 + 首款可摺疊 iPhone。IDC 預測 2027 年摺疊 iPhone 出貨 1,700 萬台、全球摺疊手機市佔 40%。記憶體成本大幅上漲（AI 需求推動）為毛利率隱憂。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$320.00</span></div>
+          <div class="tech-level resist">R1 <span>$333.00</span></div>
+          <div class="tech-level support">S2 <span>$312.00</span></div>
+          <div class="tech-level resist">R2 <span>$340.00</span></div>
+        </div>
+        <div class="stock-signal signal-hold">&#9208;&#65039; 持有觀望</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Rosenblatt · Buy</span>
+          <span class="analyst-pt">目標價 $303（已上調）</span>
+        </div>
+        <div class="stock-news">&#128240; Invezz：摺疊 iPhone 傳聞帶動 8/28 股價持續走強；Barchart 提醒 9/1 為新 CEO 上任催化劑，25 位分析師建議買入，6 位建議賣出。</div>
+      </div>
+
+      <!-- MU -->
+      <div class="stock-card negative-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">MU</div><div class="stock-name">Micron Technology</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$945.80</div>
+            <div class="stock-price-change negative">&#9660; -12.36 (-1.29%)</div>
+            <div class="stock-prev-close">前收 $958.16</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">台灣廠近 <strong>10,000 名工人</strong>威脅發動罷工，爭取更高利潤分享；中國記憶體廠商（CXMT、YMTC）持續搶佔市場份額。MU 歷史高點為 <strong>6/25 的 1,213.37 美元</strong>，目前已從高點回落 22%。HBM3E 需求為 AI 訓練硬體不可或缺的組成。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$920.00</span></div>
+          <div class="tech-level resist">R1 <span>$970.00</span></div>
+          <div class="tech-level support">S2 <span>$890.00</span></div>
+          <div class="tech-level resist">R2 <span>$1,010.00</span></div>
+        </div>
+        <div class="stock-signal signal-sell">&#9888;&#65039; 高位警戒</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Needham · Buy</span>
+          <span class="analyst-pt">目標價 $1,100</span>
+        </div>
+        <div class="stock-news">&#128240; MacroTrends / MarketBeat：MU 今年股價振幅巨大（高低差 +58%），台灣勞資糾紛可能導致部分生產中斷，需密切追蹤進展。</div>
+      </div>
+
+      <!-- VRT -->
+      <div class="stock-card negative-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">VRT</div><div class="stock-name">Vertiv Holdings</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$123.68</div>
+            <div class="stock-price-change negative">&#9660; -1.87 (-1.49%)</div>
+            <div class="stock-prev-close">前收 $125.55</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">Amazon 昨日發布自研伺服器液冷系統，引發市場對 Vertiv 訂單流失的擔憂，昨日盤中已跌 2%。Evercore ISI 分析師 James Schneider 維持 Outperform 但下調目標價至 <strong>375 美元</strong>（前 425 美元）；24/7 Wall St. 指一名分析師看好 VRT 未來 100% 反彈空間。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$118.00</span></div>
+          <div class="tech-level resist">R1 <span>$130.00</span></div>
+          <div class="tech-level support">S2 <span>$112.50</span></div>
+          <div class="tech-level resist">R2 <span>$138.00</span></div>
+        </div>
+        <div class="stock-signal signal-sell">&#9888;&#65039; 高位警戒</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Evercore ISI · Outperform</span>
+          <span class="analyst-pt">目標價 $375（下調）</span>
+        </div>
+        <div class="stock-news">&#128240; TipRanks：VRT 昨盤中跌 2% 至 $125.55，Amazon 自研冷卻架構若廣泛應用，恐影響長期訂單量；但大型科技 AI 資本支出 7,325 億美元仍支撐長線需求。</div>
+      </div>
+
+      <!-- ETN -->
+      <div class="stock-card positive-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">ETN</div><div class="stock-name">Eaton Corporation</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$392.88</div>
+            <div class="stock-price-change positive">&#9650; +2.03 (+0.52%)</div>
+            <div class="stock-prev-close">前收 $390.85</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">Motley Fool 報告比較 Vertiv vs. Eaton 作為 AI 基礎設施投資標的，ETN 受益於電力管理需求遠比冷卻更分散。微軟、Meta、Amazon、Alphabet <strong>2026 年合計 AI 資本支出 7,325 億美元</strong>，ETN 的 UPS/PDU 需求廣泛。分析師均值目標價 475.57 美元，22 位 Buy、4 位 Hold。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$382.00</span></div>
+          <div class="tech-level resist">R1 <span>$402.00</span></div>
+          <div class="tech-level support">S2 <span>$370.00</span></div>
+          <div class="tech-level resist">R2 <span>$415.00</span></div>
+        </div>
+        <div class="stock-signal signal-buy">&#9989; 留意買點</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Consensus · Buy（22/27）</span>
+          <span class="analyst-pt">均值目標 $475.57</span>
+        </div>
+        <div class="stock-news">&#128240; Motley Fool：在超大規模資料中心電力需求激增下，ETN 電力管理設備（UPS、PDU、開關設備）比 VRT 更具客戶多元性，為更穩健的「鏟子賣家」。</div>
+      </div>
+
+      <!-- AMZN -->
+      <div class="stock-card positive-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">AMZN</div><div class="stock-name">Amazon.com Inc.</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$269.14</div>
+            <div class="stock-price-change positive">&#9650; +1.93 (+0.72%)</div>
+            <div class="stock-prev-close">前收 $267.21</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">Amazon 自研液冷系統有望大幅降低資料中心電力成本，市場正面解讀為長期利潤率提升利好。AWS AI 算力業務持續超高速成長，Amazon 已躋身 <strong>2 兆美元市值俱樂部</strong>（因 Rivian 持股升值 + AI 浪潮）。2026 年 AI 資本支出 2,500 億美元創歷史記錄。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$260.00</span></div>
+          <div class="tech-level resist">R1 <span>$275.00</span></div>
+          <div class="tech-level support">S2 <span>$250.00</span></div>
+          <div class="tech-level resist">R2 <span>$285.00</span></div>
+        </div>
+        <div class="stock-signal signal-hold">&#9208;&#65039; 持有觀望</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Jefferies · Buy</span>
+          <span class="analyst-pt">目標價 $310</span>
+        </div>
+        <div class="stock-news">&#128240; Seeking Alpha：Amazon 以 Rivian 持股 + AWS AI 成長突破 2 兆美元大關；自研冷卻系統可節省每年約 15 億美元電費，長期利多。</div>
+      </div>
+
+      <!-- MSFT -->
+      <div class="stock-card positive-card">
+        <div class="stock-header">
+          <div><div class="stock-ticker">MSFT</div><div class="stock-name">Microsoft Corporation</div></div>
+          <div class="stock-price-block">
+            <div class="stock-premarket-price">$512.80</div>
+            <div class="stock-price-change positive">&#9650; +1.78 (+0.35%)</div>
+            <div class="stock-prev-close">前收 $511.02（日內高 $515.64）</div>
+          </div>
+        </div>
+        <div class="stock-divider"></div>
+        <div class="stock-reason-label">盤前異動主因</div>
+        <div class="stock-reason">微軟 Azure OpenAI 服務訂閱量持續創新高，Copilot 企業端滲透率攀升。MSFT 為 Hugging Face 股東之一，NVDA 收購案對其略有正面含義。2026 年資本支出預算 <strong>1,900 億美元</strong>，AI 基礎設施布局全面，昨日交易區間 $497.86–$515.64。</div>
+        <div class="tech-levels">
+          <div class="tech-level support">S1 <span>$500.00</span></div>
+          <div class="tech-level resist">R1 <span>$520.00</span></div>
+          <div class="tech-level support">S2 <span>$487.00</span></div>
+          <div class="tech-level resist">R2 <span>$530.00</span></div>
+        </div>
+        <div class="stock-signal signal-hold">&#9208;&#65039; 持有觀望</div>
+        <div class="analyst-row">
+          <span class="analyst-rating">Wedbush · Outperform</span>
+          <span class="analyst-pt">目標價 $560</span>
+        </div>
+        <div class="stock-news">&#128240; CNBC：Azure 季度成長再次超越 AWS，Copilot 企業版 MAU 突破 3 億，Wedbush 分析師 Dan Ives 稱 MSFT 為「AI 革命最直接受益者」。</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- G. ATTENTION ITEMS -->
+  <div class="section">
+    <div class="section-title">投資人關注事項（依風險等級分組）</div>
+
+    <div class="attention-group">
+      <div class="attention-level"><span>&#128308;</span> 極高風險</div>
+      <div class="attention-items">
+        <div class="attention-item">
+          <div class="attention-dot at-critical"></div>
+          <div>【今日 08:30 ET】8 月非農就業報告：若大幅偏離預期（共識 58–65K），可能劇烈重新定價 9/16 FOMC 決議，影響所有成長股估值。
+          <span class="stock-tag" style="margin-left:8px">NVDA</span><span class="stock-tag">AVGO</span><span class="stock-tag">MSFT</span><span class="stock-tag">AAPL</span></div>
+        </div>
+        <div class="attention-item">
+          <div class="attention-dot at-critical"></div>
+          <div>【MU 台灣勞資糾紛】近萬人罷工威脅若成真，影響 HBM3E 供應，可能波動 NVDA / AAPL 訂單交期。
+          <span class="stock-tag" style="margin-left:8px">MU</span><span class="stock-tag">NVDA</span><span class="stock-tag">AAPL</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="attention-group">
+      <div class="attention-level"><span>&#128993;</span> 中高風險</div>
+      <div class="attention-items">
+        <div class="attention-item">
+          <div class="attention-dot at-high"></div>
+          <div>【NVDA Hugging Face 收購 $129.3 億】監管審查（歐盟/FTC）時程不明，整合執行風險高，短線或壓制估值。
+          <span class="stock-tag" style="margin-left:8px">NVDA</span></div>
+        </div>
+        <div class="attention-item">
+          <div class="attention-dot at-high"></div>
+          <div>【AVGO Q4 指引略低於預期】若 Q4 AI ASIC 訂單確認度不足，市場恐重新評估 221% 年增的可持續性。
+          <span class="stock-tag" style="margin-left:8px">AVGO</span><span class="stock-tag">MRVL</span></div>
+        </div>
+        <div class="attention-item">
+          <div class="attention-dot at-high"></div>
+          <div>【Amazon 自研冷卻系統衝擊 VRT】若其他超大規模業者跟進，Vertiv 外部訂單成長率恐放緩。
+          <span class="stock-tag" style="margin-left:8px">VRT</span><span class="stock-tag">AMZN</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="attention-group">
+      <div class="attention-level"><span>&#128992;</span> 中等風險</div>
+      <div class="attention-items">
+        <div class="attention-item">
+          <div class="attention-dot at-medium"></div>
+          <div>【AAPL iPhone 18 記憶體成本上漲】AI 記憶體需求推升 DRAM 價格，Apple 毛利率承壓，9/9 發表是否調漲售價為關鍵。
+          <span class="stock-tag" style="margin-left:8px">AAPL</span><span class="stock-tag">MU</span></div>
+        </div>
+        <div class="attention-item">
+          <div class="attention-dot at-medium"></div>
+          <div>【中美晶片管制持續摩擦】AI 晶片出口新規、設備管制升級可能影響 NVDA 海外業務、TSM 接單。
+          <span class="stock-tag" style="margin-left:8px">NVDA</span><span class="stock-tag">TSM</span><span class="stock-tag">AVGO</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="attention-group">
+      <div class="attention-level"><span>&#128994;</span> 低風險／正面關注</div>
+      <div class="attention-items">
+        <div class="attention-item">
+          <div class="attention-dot at-low"></div>
+          <div>【FOMC 9/16 潛在降息 25 bps】若成真，高估值科技股估值擴張利多，尤其是 NVDA、AVGO、ALAB。
+          <span class="stock-tag" style="margin-left:8px">NVDA</span><span class="stock-tag">AVGO</span><span class="stock-tag">ALAB</span></div>
+        </div>
+        <div class="attention-item">
+          <div class="attention-dot at-low"></div>
+          <div>【ETN 電力管理需求受惠 AI 資本支出】$7,325 億美元超大規模資本支出為 ETN UPS/PDU 長期強勁訂單支撐。
+          <span class="stock-tag" style="margin-left:8px">ETN</span><span class="stock-tag">VRT</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- H. ANALYST NOTES -->
+  <div class="section">
+    <div class="section-title">分析師手記</div>
+    <div class="analyst-grid">
+      <div class="analyst-card">
+        <div class="analyst-card-icon">&#129504;</div>
+        <div class="analyst-card-title">AI 晶片格局重組：NVDA 向軟體延伸</div>
+        <div class="analyst-card-body">NVIDIA 以 129.3 億美元收購 Hugging Face 是半導體史上罕見的「硬體廠商轉型軟體生態」動作，直接對標 Microsoft GitHub + OpenAI 的佈局。Hugging Face 5,000 萬月活用戶、200,000+ AI 模型社群，若成功整合至 CUDA 生態，將大幅拉高開發者鎖定效應，強化 GPU 護城河深度。短期盈利稀釋（約 5% EPS 影響），但長期有望重構 NVDA 的估值邏輯：從 P/E 轉向平台型 EV/Sales 倍數。</div>
+      </div>
+      <div class="analyst-card">
+        <div class="analyst-card-icon">&#128171;</div>
+        <div class="analyst-card-title">AVGO / MRVL / CRDO：AI 互連三叉戟</div>
+        <div class="analyst-card-body">BofA 分析師 Vivek Arya 點名三家廠商為重振 AI 貿易熱潮的關鍵：AVGO 的自訂 ASIC（Google TPU、Meta MTIA 等）確認度高達 2027 年；MRVL 憑藉 PAM4 DSP、光子 IC 佈局光互連；CRDO 的 AEC 訊號調節器在 800G/1.6T 乙太網路轉換中佔據獨特地位。三者形成差異化競合關係，Broadcom Q3 AI 業務年增 221% 已驗證超大規模訂單持續性。</div>
+      </div>
+      <div class="analyst-card">
+        <div class="analyst-card-icon">&#9889;</div>
+        <div class="analyst-card-title">AI 基礎設施電力鏈：ETN vs. VRT 選股邏輯</div>
+        <div class="analyst-card-body">Amazon 自研液冷架構對 VRT 的衝擊提醒投資人：超大規模業者內部化部分供應鏈的趨勢不可忽視。但電力配送（UPS/PDU/開關設備）技術壁壘更高、客戶替代難度更大，ETN 的 22 位分析師中 22 位 Buy（vs. VRT 更高波動性）。若 AI 算力支出維持 2026 年 $7,325 億規模，兩者長線需求均有支撐，但 ETN 提供更穩健的風險/報酬比。大型資料中心電力密度每 18 個月翻倍的趨勢支持整個電力鏈。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- I. TODAY'S EVENTS & TOMORROW'S OUTLOOK -->
+  <div class="section">
+    <div class="section-title">今日重點事件與明日展望</div>
+    <div class="events-grid">
+      <div class="event-card">
+        <div class="event-card-title">&#128197; 今日重點事件（9/4）</div>
+        <div class="event-card-body">
+          <ul style="padding-left:16px; display:flex; flex-direction:column; gap:6px;">
+            <li><strong>08:30 ET</strong> — 8月非農就業報告（NFP），共識預估 +65,000 人，失業率 4.1%。7 月意外萎縮 -23,000 人後的重要反彈確認。</li>
+            <li><strong>全天</strong> — NVDA Hugging Face 收購消息持續發酵，機構評估戰略意義。</li>
+            <li><strong>盤後</strong> — 主要投行將更新 AVGO Q3 財報評論與目標價。</li>
+            <li><strong>全天</strong> — GOOGL 除息日（$0.22/股）；MU 台灣勞資糾紛最新進展。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="event-card">
+        <div class="event-card-title">&#128302; 明日展望 / 近期注目</div>
+        <div class="event-card-body">
+          <ul style="padding-left:16px; display:flex; flex-direction:column; gap:6px;">
+            <li><strong>9/9 ET</strong> — Apple iPhone 18 + 可摺疊 iPhone 發表，新任 CEO John Ternus 首秀。</li>
+            <li><strong>9/10</strong> — NVDA 股息除息日（$0.25/股）。</li>
+            <li><strong>9/15–16</strong> — FOMC 利率決策會議，市場預期降息 25 bps 機率逾 65%。</li>
+            <li><strong>11/25</strong> — NVIDIA Q3 FY2027 財報（預定）。</li>
+            <li><strong>持續追蹤</strong> — MU 台灣勞工協商結果、中美晶片管制升級動態。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- J. FOOTER -->
+<div class="footer">
+  <div class="footer-text">
+    <span class="footer-brand">免責聲明</span>：本報告由自動化程式依盤前公開資訊彙編，僅供 Sophia 個人參考，不構成任何投資建議或要約。所有股票均存在市場風險，過去績效不代表未來報酬。盤前數據可能與正式開盤價有所差異。技術支撐壓力位係依公開技術分析方法估算，並非精確預測。投資決策請自行評估風險承受能力並諮詢合格財務顧問。<br>
+    報告生成時間：2026年9月4日 07:30 UTC&nbsp;·&nbsp;資料來源：Bloomberg, CNBC, Yahoo Finance, Seeking Alpha, MarketBeat, Benzinga, TipRanks, 24/7 Wall St.
+  </div>
+</div>
+
+<script>
+(function() {
+  // Detect dark mode
+  function isDark() {
+    const theme = document.documentElement.getAttribute('data-theme');
+    if (theme === 'dark') return true;
+    if (theme === 'light') return false;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  const dark = isDark();
+  const textColor = dark ? '#b0ada6' : '#6b6a65';
+  const gridColor = dark ? 'rgba(240,237,230,0.07)' : 'rgba(26,26,25,0.07)';
+  const bgColor = 'transparent';
+
+  // Stock data
+  const allStocks = [
+    { ticker: 'NVDA',  pct: -0.58 },
+    { ticker: 'MRVL',  pct:  0.97 },
+    { ticker: 'CRDO',  pct:  0.09 },
+    { ticker: 'AVGO',  pct:  1.23 },
+    { ticker: 'TSM',   pct:  0.01 },
+    { ticker: 'ALAB',  pct: -0.65 },
+    { ticker: 'GOOGL', pct: -0.12 },
+    { ticker: 'AAPL',  pct:  0.38 },
+    { ticker: 'MU',    pct: -1.29 },
+    { ticker: 'VRT',   pct: -1.49 },
+    { ticker: 'ETN',   pct:  0.52 },
+    { ticker: 'AMZN',  pct:  0.72 },
+    { ticker: 'MSFT',  pct:  0.35 },
+  ];
+
+  // Chart 1: Horizontal bar (original order)
+  const ctx1 = document.getElementById('chartHorizontal').getContext('2d');
+  const colors1 = allStocks.map(s => s.pct >= 0 ? '#1D9E75' : '#D85A30');
+  new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: allStocks.map(s => s.ticker),
+      datasets: [{
+        label: '盤前漲跌幅 (%)',
+        data: allStocks.map(s => s.pct),
+        backgroundColor: colors1.map(c => c + 'CC'),
+        borderColor: colors1,
+        borderWidth: 1.5,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      maintainAspectRatio: true,
+      aspectRatio: 2.8,
+      animation: false,
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.x;
+              return ` ${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: { color: textColor, font: { size: 11 }, callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%' },
+          border: { color: gridColor }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: textColor, font: { size: 12, weight: '600' } },
+          border: { color: gridColor }
+        }
+      }
+    }
+  });
+
+  // Chart 2: Vertical bar sorted high to low
+  const sorted = [...allStocks].sort((a, b) => b.pct - a.pct);
+  const colors2 = sorted.map(s => s.pct >= 0 ? '#1D9E75' : '#D85A30');
+  const ctx2 = document.getElementById('chartVertical').getContext('2d');
+  new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(s => s.ticker),
+      datasets: [{
+        label: '盤前漲跌幅 (%)',
+        data: sorted.map(s => s.pct),
+        backgroundColor: colors2.map(c => c + 'CC'),
+        borderColor: colors2,
+        borderWidth: 1.5,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      indexAxis: 'x',
+      maintainAspectRatio: true,
+      aspectRatio: 2.2,
+      animation: false,
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              return ` ${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: textColor, font: { size: 12, weight: '600' } },
+          border: { color: gridColor }
+        },
+        y: {
+          grid: { color: gridColor },
+          ticks: { color: textColor, font: { size: 11 }, callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%' },
+          border: { color: gridColor }
+        }
+      }
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
