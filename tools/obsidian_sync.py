@@ -4,7 +4,7 @@
 - 已有筆記：只更新 frontmatter 裡的部位欄位（held、qty、cost、weight_pct、lookthrough_pct、price、synced），
   不動內文，你或 Claude 寫的論點不會被覆蓋
 - 已經不持有的：held 改成 false（筆記保留，方便日後檢討）
-- 產生／更新「投資系統/持股論點總表.base」與「交易紀錄總表.base」（Obsidian Bases 資料庫檢視）
+- 產生／更新「00 投資系統/持股論點總表.base」與「交易紀錄總表.base」（Obsidian Bases 資料庫檢視）
 
 資料：private/portfolio/holdings.toml、policy.toml、最新的 private/portfolio/snapshots/*.json（先跑 portfolio_exposure.py）
 用法：python -X utf8 tools/obsidian_sync.py
@@ -21,7 +21,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 VAULT = Path(os.environ.get("OBSIDIAN_VAULT", r"C:\Users\Andy\Documents\obsidian\obsidian"))
-SYS = VAULT / "投資系統"
+SYS = VAULT / "00 投資系統"
+COMPANIES = VAULT / "10 公司"
 TEMPLATE = SYS / "範本" / "投資論點範本.md"
 HOLDINGS = ROOT / "private" / "portfolio" / "holdings.toml"
 POLICY = ROOT / "private" / "portfolio" / "policy.toml"
@@ -120,8 +121,8 @@ def next_quarterly_review(months: list[int]) -> str:
 def note_path(ticker: str, name: str) -> Path:
     if ticker.endswith((".TW", ".TWO")):
         sid = ticker.split(".")[0]
-        return VAULT / f"{sid} {name}" / f"{name} 投資論點.md"
-    return VAULT / ticker / f"{ticker} 投資論點.md"
+        return COMPANIES / f"{sid} {name}" / f"{name} 投資論點.md"
+    return COMPANIES / ticker / f"{ticker} 投資論點.md"
 
 
 def _yaml_val(v) -> str:
@@ -155,7 +156,7 @@ def related_links(folder: Path, exclude: Path) -> str:
     if not folder.exists():
         return "- （尚無）"
     notes = sorted(p for p in folder.glob("*.md") if p != exclude)
-    return "\n".join(f"- [[{folder.name}/{p.stem}]]" for p in notes) or "- （尚無）"
+    return "\n".join(f"- [[{p.relative_to(VAULT).with_suffix('').as_posix()}]]" for p in notes) or "- （尚無）"
 
 
 def main() -> None:
@@ -218,7 +219,7 @@ def main() -> None:
 
     # 已經不持有的
     sold = []
-    for p in VAULT.glob("*/* 投資論點.md"):
+    for p in COMPANIES.glob("*/* 投資論點.md"):
         if p not in held_paths and "held: true" in p.read_text(encoding="utf-8"):
             p.write_text(set_frontmatter(p.read_text(encoding="utf-8"), {"held": False, "synced": date.today().isoformat()}),
                          encoding="utf-8")
