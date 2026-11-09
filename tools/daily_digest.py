@@ -123,6 +123,15 @@ def trade_card_alerts(price_of) -> list[dict]:
             alerts.append({"card": card, "ticker": tk, "type": "停損", "price": round(px, 2), "level": stop})
         if px is not None and target and px >= target:
             alerts.append({"card": card, "ticker": tk, "type": "目標", "price": round(px, 2), "level": target})
+        ad, action = fm.get("action_date"), fm.get("action")
+        if ad and action:
+            try:
+                days = (date.fromisoformat(ad) - date.today()).days
+                if days <= 3:
+                    when = "已到期" if days <= 0 else f"{days} 天後到期"
+                    alerts.append({"card": card, "ticker": tk, "type": f"期限動作（{when}）", "date": ad, "action": action})
+            except ValueError:
+                pass
         ts = fm.get("time_stop")
         if ts:
             try:
