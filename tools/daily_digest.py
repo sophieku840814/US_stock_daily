@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parent.parent
 HOLDINGS = ROOT / "private" / "portfolio" / "holdings.toml"
 REPORT_DIR = ROOT / "private" / "reports"
 SITE = "https://sophieku840814.github.io/US_stock_daily"
+CARDS = Path(r"C:\Users\Andy\Documents\obsidian\obsidian\00 投資系統\交易")
 
 PREMARKET_ALERT = 3.0      # 盤前漲跌 ≥ 3% 才通知
 MIN_WEIGHT = 0.003         # 低於美股部位 0.3% 的小部位不單獨通知
@@ -90,6 +91,51 @@ def usd_twd() -> float:
     return float(yf.Ticker("TWD=X").fast_info.last_price)
 
 
+# ---------------------------------------------------------------- 交易卡（停損／目標／時間停損）
+def _frontmatter(text: str) -> dict:
+    if not text.startswith("---\n"):
+        return {}
+    fm = {}
+    for line in text.split("\n---\n", 1)[0].split("\n")[1:]:
+        if ":" in line and not line.startswith(" "):
+            k, v = line.split(":", 1)
+            fm[k.strip()] = v.strip()
+    return fm
+
+
+def trade_card_alerts(price_of) -> list[dict]:
+    """讀 Obsidian「00 投資系統/交易」裡 status＝持有中 的交易卡，用 price_of(ticker) 取價比對"""
+    alerts = []
+    if not CARDS.exists():
+        return alerts
+    for f in sorted(CARDS.glob("*.md")):
+        fm = _frontmatter(f.read_text(encoding="utf-8"))
+        if fm.get("status") != "持有中" or not fm.get("ticker"):
+            continue
+        tk, card = fm["ticker"], f.stem
+        try:
+            px = price_of(tk)
+        except Exception:  # noqa: BLE001
+            px = None
+        stop = float(fm["stop"]) if fm.get("stop") else None
+        target = float(fm["target"]) if fm.get("target") else None
+        if px is not None and stop and px <= stop:
+            alerts.append({"card": card, "ticker": tk, "type": "停損", "price": round(px, 2), "level": stop})
+        if px is not None and target and px >= target:
+            alerts.append({"card": card, "ticker": tk, "type": "目標", "price": round(px, 2), "level": target})
+        ts = fm.get("time_stop")
+        if ts:
+            try:
+                days = (date.fromisoformat(ts) - date.today()).days
+            except ValueError:
+                continue
+            if days <= 0:
+                alerts.append({"card": card, "ticker": tk, "type": "時間停損到期", "date": ts})
+            elif days <= 3:
+                alerts.append({"card": card, "ticker": tk, "type": f"時間停損 {days} 天後到期", "date": ts})
+    return alerts
+
+
 # ---------------------------------------------------------------- modes
 def morning() -> dict:
     pos = load_us_positions()
@@ -120,6 +166,7 @@ def morning() -> dict:
         "tsm_adr_pct": round(tsm["pct"], 2) if tsm else None,
         "earnings_soon": [{"ticker": r["ticker"], "date": r["earnings"]} for r in rows if r["earnings"]],
         "full_report": f"{SITE}/reports/latest_aftermarket.html",
+        "trade_card_alerts": trade_card_alerts(lambda tk: (daily_change(tk) or {}).get("close")),
     }
 
 
@@ -138,7 +185,9 @@ def evening() -> dict:
         if abs(p["pct"]) >= PREMARKET_ALERT and v / total >= MIN_WEIGHT:
             alerts.append({"ticker": tk, "pct": round(p["pct"], 2), "weight_pct": round(v / total * 100, 1), "as_of": p["time"]})
     alerts.sort(key=lambda a: -abs(a["pct"]))
-    return {"mode": "evening", "notify": bool(alerts or earnings), "premarket_alerts": alerts,
+    cards = trade_card_alerts(lambda tk: vals[tk][1]["price"] if tk in vals else None)
+    return {"mode": "evening", "notify": bool(alerts or earnings or cards), "premarket_alerts": alerts,
+            "trade_card_alerts": cards,
             "earnings_today_or_tomorrow": earnings, "threshold_pct": PREMARKET_ALERT,
             "full_report": f"{SITE}/reports/latest_premarket.html"}
 
