@@ -26,7 +26,6 @@ from report_style import CSS
 ROOT = Path(__file__).resolve().parent.parent
 HOLDINGS = ROOT / "private" / "portfolio" / "holdings.toml"
 REPORT_DIR = ROOT / "private" / "reports"
-SITE = "https://sophieku840814.github.io/US_stock_daily"
 CARDS = Path(r"C:\Users\Andy\Documents\obsidian\obsidian\00 投資系統\交易")
 
 PREMARKET_ALERT = 3.0      # 盤前漲跌 ≥ 3% 才通知
@@ -174,7 +173,6 @@ def morning() -> dict:
                    for r in rows if r["weight"] >= MIN_WEIGHT][:5],
         "tsm_adr_pct": round(tsm["pct"], 2) if tsm else None,
         "earnings_soon": [{"ticker": r["ticker"], "date": r["earnings"]} for r in rows if r["earnings"]],
-        "full_report": f"{SITE}/reports/latest_aftermarket.html",
         "trade_card_alerts": trade_card_alerts(lambda tk: (daily_change(tk) or {}).get("close")),
     }
 
@@ -197,8 +195,7 @@ def evening() -> dict:
     cards = trade_card_alerts(lambda tk: vals[tk][1]["price"] if tk in vals else None)
     return {"mode": "evening", "notify": bool(alerts or earnings or cards), "premarket_alerts": alerts,
             "trade_card_alerts": cards,
-            "earnings_today_or_tomorrow": earnings, "threshold_pct": PREMARKET_ALERT,
-            "full_report": f"{SITE}/reports/latest_premarket.html"}
+            "earnings_today_or_tomorrow": earnings, "threshold_pct": PREMARKET_ALERT}
 
 
 # ---------------------------------------------------------------- HTML（morning）
@@ -224,7 +221,6 @@ def render_morning(d: dict) -> str:
             f"<h2>大盤</h2><div class='tiles'>{idx}</div>"
             f"<h2>持股漲跌前五</h2><div class='card'><table><tr><th>代號</th><th>漲跌</th><th>佔美股部位</th></tr>{movers}</table></div>"
             f"<h2>近期財報</h2><div class='card'><ul>{earn}</ul></div>"
-            f"<p><a href='{e(d['full_report'])}'>看完整盤後簡報 →</a></p>"
             f"<p class='note'>資料來源：Yahoo Finance。個人研究用途，不構成投資建議。</p></main></body></html>")
 
 
