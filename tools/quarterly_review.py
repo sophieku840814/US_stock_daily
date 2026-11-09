@@ -83,6 +83,21 @@ def load_cards() -> list[dict]:
     return cards
 
 
+def bench_return(symbol: str, start: str, end: str) -> float | None:
+    """指數 ETF 在 start～end（含）之間的報酬；抓不到回傳 None"""
+    try:
+        import yfinance as yf
+        s = date.fromisoformat(start)
+        h = yf.Ticker(symbol).history(start=(s - timedelta(days=7)).isoformat(),
+                                      end=(date.fromisoformat(end) + timedelta(days=1)).isoformat())["Close"].dropna()
+        h.index = h.index.date
+        before = h[h.index <= s]
+        base = float(before.iloc[-1]) if len(before) else float(h.iloc[0])
+        return float(h.iloc[-1]) / base - 1
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def status_icon(ok: bool | None) -> str:
     return "—" if ok is None else ("✅" if ok else "⚠️")
 
@@ -211,6 +226,36 @@ def build() -> str:
         L.append(f"\n**本期已出場 {len(closed)} 筆**：勝率 {win}/{len(rs) or 1}，平均 {sum(rs) / len(rs):+.2f}R" if rs
                  else f"\n**本期已出場 {len(closed)} 筆**（尚未填結果）")
     L.append("")
+
+    # 5.5 選股 vs 指數（政策書 4.2）
+    bench = pol.get("new_money", {}).get("benchmark")
+    if bench:
+        L.append(f"## 5.5 選股 vs {bench}（政策書 4.2）")
+        rows_sv = []
+        for c in cards:
+            fm = c["fm"]
+            tk, od = fm.get("ticker"), fm.get("open_date")
+            entry = num(fm.get("entry"))
+            if not (tk and od and entry):
+                continue
+            exit_px = num(fm.get("exit_price")) if fm.get("status") == "已出場" else price.get(tk)
+            end = fm.get("close_date") or today.isoformat()
+            if not exit_px:
+                continue
+            b = bench_return(bench, od, end)
+            w = num(fm.get("size_twd")) or 0
+            rows_sv.append((c["path"].stem, exit_px / entry - 1, b, w))
+        if rows_sv:
+            L.append("| 交易卡 | 選股報酬 | 同期 " + bench + " | 差距 |\n|---|---|---|---|")
+            for name, r, b, _ in rows_sv:
+                L.append(f"| {name} | {r:+.1%} | {b:+.1%} | {r - b:+.1%} |" if b is not None else f"| {name} | {r:+.1%} | — | — |")
+            tw_ = sum(w for *_, w in rows_sv if w) or 1
+            port = sum(r * w for _, r, _, w in rows_sv) / tw_
+            bm = [(b, w) for _, _, b, w in rows_sv if b is not None]
+            bport = sum(b * w for b, w in bm) / (sum(w for _, w in bm) or 1)
+            L.append(f"\n**加權合計：選股 {port:+.1%} vs {bench} {bport:+.1%}（差距 {port - bport:+.1%}）**。"
+                     "連續 4 季輸給指數 → 依政策書衛星降到 5% 或停止選股。過渡部位的起算日是 2026-11-09 補卡日。")
+        L.append("")
 
     # 6. 本季事件
     L.append(f"## 6. 本季追蹤紀錄（近 {LOOKBACK_DAYS} 天）")

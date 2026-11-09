@@ -254,7 +254,25 @@ def build(holdings: dict, cfg: dict) -> dict:
     for r in losers:
         alerts.append(("warning", f"{r['name']} 帳面虧損 {r['pnl_pct']:.1%}，建議做論點檢查"))
 
+    # --- B 方案：新資金買指數 ETF 多少，才能把 AI 主題稀釋到目標
+    nm = pol.get("new_money", {})
+    index_plan = None
+    idx = nm.get("index_etf")
+    if idx:
+        hold = etf_holdings.get(idx) or fetch_top_holdings(idx)
+        ai_w = sum(w for sym, _, w in hold if theme(canon(sym)) == "AI／半導體")  # 只算前十大，偏低估
+        ai_now = dict(themes_sorted).get("AI／半導體", 0)
+        target = conc.get("theme_target")
+        if target and ai_now > target > ai_w:
+            need_usd = (ai_now - target) * total_usd / (target - ai_w)
+            index_plan = {"etf": idx, "etf_ai_weight": ai_w, "ai_now": ai_now, "target": target,
+                          "need_usd": need_usd, "need_twd": need_usd * twd_per_usd}
+            alerts.append(("info", f"依 B 方案：新資金再投入 {names.get(idx, idx)} 約 NT${need_usd * twd_per_usd / 1e4:,.0f} 萬"
+                                   f"（且不加碼 AI 個股），AI 主題可從 {ai_now:.1%} 降到 {target:.0%}"
+                                   f"（{names.get(idx, idx)} 前十大中 AI／半導體約 {ai_w:.0%}）"))
+
     return {
+        "index_plan": index_plan,
         "as_of": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "holdings_updated": holdings.get("updated"),
         "fx": {"TWD_per_USD": twd_per_usd, **{f"{c}_to_USD": v for c, v in fx.items()}},
