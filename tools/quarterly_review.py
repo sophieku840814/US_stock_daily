@@ -8,7 +8,7 @@
   - Obsidian：10 公司/*/*投資論點.md、00 投資系統/交易/*.md
 輸出：Obsidian「00 投資系統/檢討/YYYY-MM 季檢討.md」（已存在時另存為 …（重產 HHMM）.md，不覆蓋你已經填寫的版本）
 
-用法：python -X utf8 tools/quarterly_review.py
+用法：python -X utf8 tools/quarterly_review.py [--no-dcf]（預設會替核心個股重跑 DCF，約數分鐘）
 """
 from __future__ import annotations
 
@@ -98,6 +98,22 @@ def bench_return(symbol: str, start: str, end: str) -> float | None:
         return None
 
 
+RUN_DCF = True  # main() 依 --no-dcf 覆寫
+
+
+def run_dcf(tickers: list[str]) -> None:
+    """替核心個股重跑 DCF（tools/dcf_build.py，會順便更新輸入資料）；單檔失敗不影響其他"""
+    import subprocess
+    import sys
+    for tk in tickers:
+        print(f"  DCF {tk}…", file=sys.stderr)
+        try:
+            subprocess.run([sys.executable, "-X", "utf8", str(ROOT / "tools" / "dcf_build.py"), tk, "--refresh"],
+                           cwd=ROOT, check=True, timeout=300, capture_output=True)
+        except Exception as e:  # noqa: BLE001
+            print(f"    ! {tk} DCF 失敗：{e}", file=sys.stderr)
+
+
 def status_icon(ok: bool | None) -> str:
     return "—" if ok is None else ("✅" if ok else "⚠️")
 
@@ -183,6 +199,28 @@ def build() -> str:
         L.append(f"| {link(t['path'], table=True)} | {fm.get('sleeve', '')} | {fm.get('status', '')} | {fm.get('conviction', '')} | "
                  f"{expo:.2f}% | {nr}{' ⚠️逾期' if overdue else ''} | {last_s} |")
     L.append("")
+
+    # 3.5 DCF 合理價（核心個股）
+    core = sorted({r["ticker"] for r in now["rows"] if r["sleeve"] == "core" and not r["is_etf"]})
+    if RUN_DCF:
+        run_dcf(core)
+    dcf_rows = []
+    for tk in core:
+        f = ROOT / "models" / f"{tk.split('.')[0]}_DCF_summary.json"
+        if f.exists():
+            dcf_rows.append(json.loads(f.read_text(encoding="utf-8")))
+    if dcf_rows:
+        L.append("## 3.5 DCF 合理價（核心個股）")
+        L.append("| 持股 | 評價日 | 現價 | 悲觀 | 基本 | 樂觀 | 基本 vs 現價 | WACC | 終值佔比（基本） |\n|---|---|---|---|---|---|---|---|---|")
+        for d in sorted(dcf_rows, key=lambda d: d.get("upside", {}).get("base", 0)):
+            fv, up, tv = d["fair_value_per_share"], d["upside"], d["terminal_value_pct_of_ev"]
+            warn = " ⚠️" if d.get("terminal_value_warning") else ""
+            L.append(f"| {d['ticker']} | {d['valuation_date']} | {d['price']:,.2f} | {fv['bear']:,.0f} | **{fv['base']:,.0f}** | "
+                     f"{fv['bull']:,.0f} | {up['base']:+.0%} | {d['wacc']:.1%} | {tv['base']:.0%}{warn} |")
+        L.append("\n> DCF 是「假設的放大器」：結果對營收成長、利益率、WACC 非常敏感，**只當作檢查市場預期的工具，不是買賣訊號**。"
+                 "基本情境利益率用近四季水準、不假設擴張；市價遠高於 DCF，通常代表市場預期利益率會大幅擴張（例如 AMD）。"
+                 "資本支出正在暴增的公司（例如 ORCL、GOOGL、AMZN）結果特別不可靠：模型假設資本支出逐年收斂到折舊 × 1.25，"
+                 "收斂得越快，合理價越高。⚠️＝終值佔企業價值超過 75%。模型檔在專案 `models/`，台股無風險利率 1.6% 待查證。\n")
 
     # 4. 需要你注意
     L.append("## 4. 需要你注意")
@@ -284,6 +322,11 @@ def build() -> str:
 
 
 def main() -> None:
+    global RUN_DCF
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--no-dcf", action="store_true", help="不重跑核心個股的 DCF，只讀既有摘要")
+    RUN_DCF = not ap.parse_args().no_dcf
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     out = OUT_DIR / f"{date.today():%Y-%m} 季檢討.md"
     if out.exists():
